@@ -9,10 +9,11 @@ from PyQt5.QtWidgets import QMainWindow,\
                             QDialog
 from PyQt5.QtGui import QPainter, \
                         QPixmap, \
-                        QColor
+                        QColor, \
+                        QBrush, \
+                        QPen
 from PyQt5 import QtCore
-from PyQt5.QtCore import Qt, \
-                         QPoint
+from PyQt5.QtCore import Qt
 
 
 
@@ -83,7 +84,7 @@ class MainWindow(QDialog):
 
     def _set_items_into_combobox(self):
         #// Combobox Line. 
-        self.combobox_line.addItems(["Empty", "Red", "Green", "Blue", "Yellow", "Black", "White"])
+        self.combobox_line.addItems(["Black", "Red", "Green", "Blue", "Yellow", "White"])
 
         #// Combobox Background.
         self.combobox_background.addItems(["White", "Red", "Green", "Blue", "Yellow", "Black"])
@@ -98,19 +99,18 @@ class MainWindow(QDialog):
         self.combobox_fill.currentTextChanged.connect(self._change_fill)
         
     def _change_line(self, value):
-        print(f"Change to {value}")
+        self.board.pen = QPen(QColor(value))
         
     def _change_background(self, value):
         self.board.pixmap.fill(QColor(value))
         self.board.update()
         
     def _change_fill(self, value):
-        print(f"Change to {value}")
+        if value == "Empty":
+            self.board.brush = QBrush(Qt.NoBrush)
+        else:
+            self.board.brush = QBrush(QColor(value))
 
-    #// QPainter.
-        
-    
-               
 
                
 
@@ -125,6 +125,8 @@ class Board(QDialog):
         self.pixmap = QPixmap(700, 600)
         self.pixmap.fill(Qt.white)
         self.points = []
+        self.brush = QBrush(QColor(0, 0, 0, 0))
+        self.pen = QPen(QColor(0, 0, 0))
 
         #// Init
         self.radiobutton_line = radiobutton_line
@@ -136,9 +138,11 @@ class Board(QDialog):
     def paintEvent(self, event):
         self.painter = QPainter()
         self.painter.begin(self.pixmap)
+        
         if self.point_start != 0 and self.point_end != 0:
-            print(self.points)
             for figure in self.points:
+                self.painter.setBrush(figure[3])
+                self.painter.setPen(figure[4])
                 if figure[0] == "line":
                     self.painter.drawLine(figure[1], figure[2])
 
@@ -153,7 +157,6 @@ class Board(QDialog):
                     self.painter.drawRect(figure[1].x(), figure[1].y(), 
                                           figure[2].x() - figure[1].x(), 
                                           figure[2].y() - figure[1].y())
-                
         self.painter.end()
 
         self.painter_2 = QPainter()
@@ -177,15 +180,13 @@ class Board(QDialog):
         def update_dict_with_points(figure):
             if event.button() == QtCore.Qt.LeftButton:
                 self.point_end = event.pos()
-                self.points.append([f"{figure}", self.point_start, self.point_end])
+                self.points.append([f"{figure}", self.point_start, 
+                                    self.point_end, self.brush, self.pen])
                 self.update()
 
         if self.radiobutton_line.isChecked():
-            print('1')
             update_dict_with_points("line")
         elif self.radiobutton_ellipse.isChecked():
-            print('2')
             update_dict_with_points("ellipse")
         elif self.radiobutton_rectangle.isChecked():
-            print('3')
             update_dict_with_points("rectangle") 
