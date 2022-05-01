@@ -1,11 +1,8 @@
-from tkinter import Button
-from PyQt5.QtWidgets import QMainWindow,\
-                            QRadioButton,\
+from PyQt5.QtWidgets import QRadioButton,\
                             QComboBox,\
                             QVBoxLayout,\
                             QHBoxLayout,\
                             QLabel,\
-                            QWidget,\
                             QDialog
 from PyQt5.QtGui import QPainter, \
                         QPixmap, \
@@ -62,6 +59,7 @@ class MainWindow(QDialog):
 
         
     def _set_layouts(self):
+        """Set Layouts to widgets"""
         self.vertical_layout = QVBoxLayout()
         self.vertical_layout.addWidget(self.label_instrument)
         self.vertical_layout.addWidget(self.radiobutton_line)
@@ -99,13 +97,16 @@ class MainWindow(QDialog):
         self.combobox_fill.currentTextChanged.connect(self._change_fill)
         
     def _change_line(self, value):
+        """Signal for change line color"""
         self.board.pen = QPen(QColor(value))
         
     def _change_background(self, value):
+        """Signal for change background color"""
         self.board.pixmap.fill(QColor(value))
         self.board.update()
         
     def _change_fill(self, value):
+        """Signal for change fill color. If value is Empty, set transparent color."""
         if value == "Empty":
             self.board.brush = QBrush(Qt.NoBrush)
         else:
@@ -136,13 +137,17 @@ class Board(QDialog):
         self.combobox_fill = combobox_fill
         
     def paintEvent(self, event):
+        #// Draw in Pixmap.
         self.painter = QPainter()
         self.painter.begin(self.pixmap)
         
         if self.point_start != 0 and self.point_end != 0:
             for figure in self.points:
+
+                #// Set Brush and Pen color
                 self.painter.setBrush(figure[3])
                 self.painter.setPen(figure[4])
+
                 if figure[0] == "line":
                     self.painter.drawLine(figure[1], figure[2])
 
@@ -159,24 +164,30 @@ class Board(QDialog):
                                           figure[2].y() - figure[1].y())
         self.painter.end()
 
+        #// Transfer Pixmap to QPainter Canvas.
         self.painter_2 = QPainter()
         self.painter_2.begin(self)
         self.painter_2.drawPixmap(0, 0, self.pixmap)
         self.painter_2.end()
         
     def mousePressEvent(self, event):
+        """Signal for press left button of mouse. Check radiobuttons conditions."""
         if self.radiobutton_line.isChecked():
             if event.buttons() == QtCore.Qt.LeftButton:
                 self.point_start = event.pos()
+
         elif self.radiobutton_ellipse.isChecked():
             if event.buttons() == QtCore.Qt.LeftButton:
                 self.point_start = event.pos()
+
         elif self.radiobutton_rectangle.isChecked():
             if event.buttons() == QtCore.Qt.LeftButton:
                 self.point_start = event.pos()
             
 
     def mouseReleaseEvent(self, event):
+        """Signal for unpress left button of mouse. Append list with points, brush's and 
+        pen's color."""
         def update_dict_with_points(figure):
             if event.button() == QtCore.Qt.LeftButton:
                 self.point_end = event.pos()
@@ -186,7 +197,9 @@ class Board(QDialog):
 
         if self.radiobutton_line.isChecked():
             update_dict_with_points("line")
+
         elif self.radiobutton_ellipse.isChecked():
             update_dict_with_points("ellipse")
+
         elif self.radiobutton_rectangle.isChecked():
             update_dict_with_points("rectangle") 
