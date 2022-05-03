@@ -1,9 +1,11 @@
+from tkinter import VERTICAL
 from PyQt5.QtWidgets import QRadioButton,\
                             QComboBox,\
                             QVBoxLayout,\
                             QHBoxLayout,\
                             QLabel,\
-                            QDialog
+                            QDialog, \
+                            QSlider
 from PyQt5.QtGui import QPainter, \
                         QPixmap, \
                         QColor, \
@@ -49,6 +51,11 @@ class MainWindow(QDialog):
         self.combobox_background = QComboBox(self)
         self.combobox_fill = QComboBox(self)
         
+        #// Creare Slider.
+        self.slider = QSlider(self, orientation=Qt.Horizontal)
+        self.slider.setMaximum(50)
+        self.slider.valueChanged.connect(self._change_line)
+        
         self.board = Board(
             self.radiobutton_line,
             self.radiobutton_ellipse,
@@ -56,7 +63,6 @@ class MainWindow(QDialog):
             self.combobox_line,
             self.combobox_fill
         )
-
         
     def _set_layouts(self):
         """Set Layouts to widgets"""
@@ -73,6 +79,7 @@ class MainWindow(QDialog):
         self.vertical_layout.addWidget(self.combobox_background)
         self.vertical_layout.addWidget(self.label_fill)
         self.vertical_layout.addWidget(self.combobox_fill)
+        self.vertical_layout.addWidget(self.slider)
         
         self.horisontal_layout = QHBoxLayout()
         self.horisontal_layout.addLayout(self.vertical_layout)
@@ -98,7 +105,7 @@ class MainWindow(QDialog):
         
     def _change_line(self, value):
         """Signal for change line color"""
-        self.board.pen = QPen(QColor(value))
+        self.board.pen = QPen(QColor(self.combobox_line.currentText()), self.slider.value())
         
     def _change_background(self, value):
         """Signal for change background color"""
@@ -112,6 +119,8 @@ class MainWindow(QDialog):
         else:
             self.board.brush = QBrush(QColor(value))
 
+    # def _change_line_width(self, value):
+    #     self.board.pen = QPen(QColor(self.combobox_line.currentText()), self.slider.value())
 
                
 
@@ -127,7 +136,7 @@ class Board(QDialog):
         self.pixmap.fill(Qt.white)
         self.points = []
         self.brush = QBrush(QColor(0, 0, 0, 0))
-        self.pen = QPen(QColor(0, 0, 0))
+        self.pen = QPen(QColor(0, 0, 0), 1)
 
         #// Init
         self.radiobutton_line = radiobutton_line
